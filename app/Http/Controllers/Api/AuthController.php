@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RegisterConsumerRequest;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -29,13 +30,13 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Las credenciales proporcionadas son incorrectas.'],
+                'email' => [__('messages.auth.invalid_credentials')],
             ]);
         }
 
         if ($user->status !== 'active') {
             throw ValidationException::withMessages([
-                'email' => ['Esta cuenta se encuentra inactiva o suspendida.'],
+                'email' => [__('messages.auth.account_inactive')],
             ]);
         }
 
@@ -91,7 +92,37 @@ class AuthController extends Controller
                 'user' => $user->load('roles'),
                 'token' => $token,
             ],
-            'message' => 'Empresa registrada. Pendiente de aprobación.',
+            'message' => __('messages.auth.company_registered'),
+        ], 201);
+    }
+
+    /**
+     * POST /api/auth/register-consumer
+     * Registro público de un usuario final de la app de consumo.
+     */
+    public function registerConsumer(RegisterConsumerRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        $user = User::create([
+            'company_id' => null,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'phone' => $data['phone'] ?? null,
+            'password' => Hash::make($data['password']),
+            'status' => 'active',
+        ]);
+
+        $user->assignRole('consumer');
+
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'data' => [
+                'user' => $user->load('roles'),
+                'token' => $token,
+                'token_type' => 'Bearer',
+            ],
         ], 201);
     }
 
@@ -102,7 +133,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Sesión cerrada correctamente.']);
+        return response()->json(['message' => __('messages.auth.logged_out')]);
     }
 
     /**
@@ -115,8 +146,8 @@ class AuthController extends Controller
         $status = Password::sendResetLink($request->only('email'));
 
         return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => 'Enlace de recuperación enviado.'])
-            : response()->json(['message' => 'No pudimos enviar el enlace.'], 400);
+            ? response()->json(['message' => __('messages.auth.reset_link_sent')])
+            : response()->json(['message' => __('messages.auth.reset_link_failed')], 400);
     }
 
     /**
@@ -135,8 +166,8 @@ class AuthController extends Controller
         });
 
         return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => 'Contraseña actualizada correctamente.'])
-            : response()->json(['message' => 'El token no es válido o expiró.'], 400);
+            ? response()->json(['message' => __('messages.auth.password_updated')])
+            : response()->json(['message' => __('messages.auth.invalid_reset_token')], 400);
     }
 
     /**

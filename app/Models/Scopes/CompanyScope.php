@@ -16,9 +16,11 @@ class CompanyScope implements Scope
 
         $user = auth()->user();
 
-        // El Platform Owner (super administrador) ve todos los registros,
-        // de todas las empresas, sin restricción.
-        if ($user->hasRole('platform-owner')) {
+        // El Platform Owner ve todos los registros, de todas las empresas.
+        // El Consumer tampoco pertenece a ninguna empresa — sus consultas
+        // van por endpoints públicos de /discover, que ya ignoran este
+        // scope explícitamente, pero lo eximimos aquí también por seguridad.
+        if ($user->hasRole('platform-owner') || $user->hasRole('consumer')) {
             return;
         }
 

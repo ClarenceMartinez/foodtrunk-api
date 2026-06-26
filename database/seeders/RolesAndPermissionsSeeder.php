@@ -62,5 +62,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage-menus',
             'manage-locations',
         ]);
+
+        // Consumer: usuario final de la app móvil de consumo. Sin permisos
+        // administrativos — solo navega el directorio público y gestiona
+        // sus propios favoritos (ver FavoriteController).
+        Role::firstOrCreate(['name' => 'consumer', 'guard_name' => 'web']);
     }
 }
