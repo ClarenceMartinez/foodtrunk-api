@@ -19,7 +19,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'company_id', 'name', 'email', 'phone', 'avatar_url',
-        'password', 'status', 'last_login_at',
+        'password', 'status', 'last_login_at', 'fcm_token',
     ];
 
     protected $hidden = [

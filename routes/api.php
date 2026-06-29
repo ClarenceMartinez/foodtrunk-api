@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DiscoverController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\FcmTokenController;
 use App\Http\Controllers\Api\FoodTruckController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\MenuController;
@@ -73,7 +74,7 @@ Route::middleware(['auth:sanctum', 'role:consumer'])
         Route::get('/favorites', [FavoriteController::class, 'index']);
         Route::post('/favorites/{foodTruck}', [FavoriteController::class, 'store']);
         Route::delete('/favorites/{foodTruck}', [FavoriteController::class, 'destroy']);
-        // Favoritos = Follow (decision de producto: un solo corazón = seguir).
+        // Favoritos = Follow (decision de producto: un solo corazon = seguir).
         Route::get('/favorites/{foodTruck}/status', [FavoriteController::class, 'status']);
         Route::patch('/favorites/{foodTruck}/notifications', [FavoriteController::class, 'updateNotifications']);
 
@@ -92,6 +93,9 @@ Route::middleware('auth:sanctum')
         Route::patch('/notification-settings', [NotificationSettingsController::class, 'update']);
         Route::post('/location', [UserLocationController::class, 'store']);
         Route::get('/nearby-suggestions', [NearbySuggestionsController::class, 'index']);
+        // Registro/actualizacion del FCM token del dispositivo. La app
+        // Flutter llama esto al iniciar sesion y cuando el token se refresca.
+        Route::post('/fcm-token', [FcmTokenController::class, 'store']);
     });
 
 // Rutas exclusivas del Platform Owner (super administrador).
